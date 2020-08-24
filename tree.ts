@@ -43,7 +43,7 @@ if (isRight(nodes)) {
   if (root) {
     console.log(JSON.stringify(fold(nodes.right, [root.id]), null, 2));
   } else {
-    console.error('No root node');
+    console.error('No root node.');
   }
 } else {
   console.error('Invalid JSON.');
