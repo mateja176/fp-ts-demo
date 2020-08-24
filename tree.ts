@@ -39,23 +39,27 @@ const reduce = (
     }
   })(children);
 
-const mapNodesToTree = (nodes: NodeArray) => {
-  const root = fp.array.findFirst(({ parent }: Node) => parent === null)(nodes);
+const mapNodesToTree = (nodes: NodeArray, root: Node) => {
+  const nameTree: NameTree = fp.tree.make(
+    root.name,
+    reduce(nodes, root.children),
+  );
 
-  if (fp.option.isSome(root)) {
-    const nameTree: NameTree = fp.tree.make(
-      root.value.name,
-      reduce(nodes, root.value.children),
-    );
-
-    return nameTree;
-  } else {
-    console.error('No root node.');
-  }
+  return nameTree;
 };
 
 if (isRight(nodes)) {
-  console.log(JSON.stringify(mapNodesToTree(nodes.right), null, 2));
+  const root = fp.array.findFirst(({ parent }: Node) => parent === null)(
+    nodes.right,
+  );
+
+  if (fp.option.isSome(root)) {
+    console.log(
+      JSON.stringify(mapNodesToTree(nodes.right, root.value), null, 2),
+    );
+  } else {
+    console.error('No root node.');
+  }
 } else {
   console.error('Invalid JSON.');
 }
