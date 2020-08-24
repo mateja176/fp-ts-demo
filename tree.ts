@@ -38,7 +38,7 @@ const reduce = (
     }
   })(children);
 
-const mapNodesToTree = (nodes: NodeArray, root: Node) => {
+const mapNodesToTree = (nodes: NodeArray) => (root: Node) => {
   const nameTree: NameTree = fp.tree.make(
     root.name,
     reduce(nodes, root.children),
@@ -49,15 +49,21 @@ const mapNodesToTree = (nodes: NodeArray, root: Node) => {
 
 fp.function.pipe(
   nodes,
-  fp.either.fold(console.error, (nodes: NodeArray) => {
+  fp.either.fold(console.error, (nodes) => {
     const root = fp.array.findFirst(({ parent }: Node) => parent === null)(
       nodes,
     );
 
-    if (fp.option.isSome(root)) {
-      console.log(JSON.stringify(mapNodesToTree(nodes, root.value), null, 2));
-    } else {
-      console.error('No root node.');
-    }
+    fp.function.pipe(
+      root,
+      fp.option.fold(
+        () => console.error('No root node.'),
+        fp.function.flow(
+          mapNodesToTree(nodes),
+          (tree) => JSON.stringify(tree, null, 2),
+          console.log,
+        ),
+      ),
+    );
   }),
 );
