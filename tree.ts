@@ -24,29 +24,22 @@ const nodes = NodeArrayType.decode(treeJSON);
 
 type NameTree = fp.tree.Tree<Node['name'] | Error>;
 
-const reduce = (nodes: NodeArray) => (
+type NodeRecord = Record<string, Node>;
+
+const reduce = (nodeRecord: NodeRecord) => (
   children: Node['children'],
 ): fp.tree.Forest<Node['name'] | Error> =>
   fp.function.pipe(
     children,
     fp.array.map((id: Node['id']) => {
-      const node = fp.function.pipe(
-        nodes,
-        fp.array.findFirst((node: Node) => node.id === id),
-      );
+      const node = nodeRecord[id];
 
-      return fp.function.pipe(
-        node,
-        fp.option.fold(
-          () => fp.tree.tree.of(new Error(`Cannot find node by id "${id}"`)),
-          (node) => fp.tree.make(node.name, reduce(nodes)(node.children)),
-        ),
-      );
+      return fp.tree.make(node.name, reduce(nodeRecord)(node.children));
     }),
   );
 
-const mapNodesToTree = (nodes: NodeArray) => (root: Node): NameTree =>
-  fp.tree.make(root.name, reduce(nodes)(root.children));
+const mapNodesToTree = (nodeRecord: NodeRecord) => (root: Node): NameTree =>
+  fp.tree.make(root.name, reduce(nodeRecord)(root.children));
 
 fp.function.pipe(
   nodes,
@@ -56,12 +49,20 @@ fp.function.pipe(
       fp.array.findFirst(({ parent }: Node) => parent === null),
     );
 
+    const nodeRecord = fp.function.pipe(
+      nodes,
+      fp.array.reduce({}, (record: NodeRecord, node) => ({
+        ...record,
+        [node.id]: node,
+      })),
+    );
+
     fp.function.pipe(
       root,
       fp.option.fold(
         () => console.error('No root node.'),
         fp.function.flow(
-          mapNodesToTree(nodes),
+          mapNodesToTree(nodeRecord),
           (tree) => JSON.stringify(tree, null, 2),
           console.log,
         ),
