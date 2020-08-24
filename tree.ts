@@ -30,7 +30,10 @@ const reduce = (nodes: NodeArray) => (
   fp.function.pipe(
     children,
     fp.array.map((id: Node['id']) => {
-      const node = fp.array.findFirst((node: Node) => node.id === id)(nodes);
+      const node = fp.function.pipe(
+        nodes,
+        fp.array.findFirst((node: Node) => node.id === id),
+      );
 
       if (fp.option.isSome(node)) {
         return fp.tree.make(
@@ -55,8 +58,9 @@ const mapNodesToTree = (nodes: NodeArray) => (root: Node) => {
 fp.function.pipe(
   nodes,
   fp.either.fold(console.error, (nodes) => {
-    const root = fp.array.findFirst(({ parent }: Node) => parent === null)(
+    const root = fp.function.pipe(
       nodes,
+      fp.array.findFirst(({ parent }: Node) => parent === null),
     );
 
     fp.function.pipe(
