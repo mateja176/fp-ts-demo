@@ -26,7 +26,7 @@ type NameTree = fp.tree.Tree<Node['name'] | Error>;
 
 type NodeRecord = Record<string, Node>;
 
-const reduce = (nodeRecord: NodeRecord) => (
+const mapNodeIdsToTrees = (nodeRecord: NodeRecord) => (
   children: Node['children'],
 ): fp.tree.Forest<Node['name'] | Error> =>
   fp.function.pipe(
@@ -34,12 +34,15 @@ const reduce = (nodeRecord: NodeRecord) => (
     fp.array.map((id: Node['id']) => {
       const node = nodeRecord[id];
 
-      return fp.tree.make(node.name, reduce(nodeRecord)(node.children));
+      return fp.tree.make(
+        node.name,
+        mapNodeIdsToTrees(nodeRecord)(node.children),
+      );
     }),
   );
 
 const mapNodesToTree = (nodeRecord: NodeRecord) => (root: Node): NameTree =>
-  fp.tree.make(root.name, reduce(nodeRecord)(root.children));
+  fp.tree.make(root.name, mapNodeIdsToTrees(nodeRecord)(root.children));
 
 fp.function.pipe(
   nodes,
