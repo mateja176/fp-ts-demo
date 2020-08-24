@@ -1,5 +1,4 @@
 import * as fp from 'fp-ts';
-import { isRight } from 'fp-ts/lib/These';
 import * as io from 'io-ts';
 import treeJSON from './tree.json';
 
@@ -48,18 +47,17 @@ const mapNodesToTree = (nodes: NodeArray, root: Node) => {
   return nameTree;
 };
 
-if (isRight(nodes)) {
-  const root = fp.array.findFirst(({ parent }: Node) => parent === null)(
-    nodes.right,
-  );
-
-  if (fp.option.isSome(root)) {
-    console.log(
-      JSON.stringify(mapNodesToTree(nodes.right, root.value), null, 2),
+fp.function.pipe(
+  nodes,
+  fp.either.fold(console.error, (nodes: NodeArray) => {
+    const root = fp.array.findFirst(({ parent }: Node) => parent === null)(
+      nodes,
     );
-  } else {
-    console.error('No root node.');
-  }
-} else {
-  console.error('Invalid JSON.');
-}
+
+    if (fp.option.isSome(root)) {
+      console.log(JSON.stringify(mapNodesToTree(nodes, root.value), null, 2));
+    } else {
+      console.error('No root node.');
+    }
+  }),
+);
