@@ -1,3 +1,4 @@
+import * as fp from 'fp-ts';
 import { isRight } from 'fp-ts/lib/These';
 import * as io from 'io-ts';
 import treeJSON from './tree.json';
@@ -22,26 +23,35 @@ const NodeArrayType = io.array(NodeType);
 
 const nodes = NodeArrayType.decode(treeJSON);
 
-interface Tree {
-  [key: string]: {} | Tree;
-}
+type NameTree = fp.tree.Tree<Node['name']>;
 
-const fold = (nodes: NodeArray, children: Node['children']): Tree =>
-  children.reduce((tree, nodeId) => {
-    const node = nodes.find(({ id }) => id === nodeId);
+const reduce = (
+  nodes: NodeArray,
+  children: Node['children'],
+): fp.tree.Forest<Node['name']> =>
+  fp.array.map((id: Node['id']) => {
+    const node = fp.array.findFirst((node: Node) => node.id === id)(nodes);
 
-    if (node) {
-      return { ...tree, [node.name]: fold(nodes, node.children) };
+    if (fp.option.isSome(node)) {
+      return fp.tree.make(node.value.name, reduce(nodes, node.value.children));
     } else {
-      throw new Error(`Cannot find node by id "${nodeId}"`);
+      throw new Error(`Cannot find node by id "${id}"`);
     }
-  }, {} as Tree);
+  })(children);
 
 if (isRight(nodes)) {
-  const root = nodes.right.find((node) => node.parent === null);
+  const root = fp.array.findFirst(({ parent }: Node) => parent === null)(
+    nodes.right,
+  );
 
-  if (root) {
-    console.log(JSON.stringify(fold(nodes.right, [root.id]), null, 2));
+  if (fp.option.isSome(root)) {
+    console.log(
+      JSON.stringify(
+        fp.tree.make(root.value.name, reduce(nodes.right, root.value.children)),
+        null,
+        2,
+      ),
+    );
   } else {
     console.error('No root node.');
   }
