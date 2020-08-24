@@ -45,14 +45,8 @@ const reduce = (nodes: NodeArray) => (
     }),
   );
 
-const mapNodesToTree = (nodes: NodeArray) => (root: Node) => {
-  const nameTree: NameTree = fp.tree.make(
-    root.name,
-    reduce(nodes)(root.children),
-  );
-
-  return nameTree;
-};
+const mapNodesToTree = (nodes: NodeArray) => (root: Node): NameTree =>
+  fp.tree.make(root.name, reduce(nodes)(root.children));
 
 fp.function.pipe(
   nodes,
