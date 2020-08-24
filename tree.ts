@@ -45,13 +45,12 @@ if (isRight(nodes)) {
   );
 
   if (fp.option.isSome(root)) {
-    console.log(
-      JSON.stringify(
-        fp.tree.make(root.value.name, reduce(nodes.right, root.value.children)),
-        null,
-        2,
-      ),
+    const nameTree: NameTree = fp.tree.make(
+      root.value.name,
+      reduce(nodes.right, root.value.children),
     );
+
+    console.log(JSON.stringify(nameTree, null, 2));
   } else {
     console.error('No root node.');
   }
