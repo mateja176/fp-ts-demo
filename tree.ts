@@ -35,14 +35,13 @@ const reduce = (nodes: NodeArray) => (
         fp.array.findFirst((node: Node) => node.id === id),
       );
 
-      if (fp.option.isSome(node)) {
-        return fp.tree.make(
-          node.value.name,
-          reduce(nodes)(node.value.children),
-        );
-      } else {
-        return fp.tree.tree.of(new Error(`Cannot find node by id "${id}"`));
-      }
+      return fp.function.pipe(
+        node,
+        fp.option.fold(
+          () => fp.tree.tree.of(new Error(`Cannot find node by id "${id}"`)),
+          (node) => fp.tree.make(node.name, reduce(nodes)(node.children)),
+        ),
+      );
     }),
   );
 
